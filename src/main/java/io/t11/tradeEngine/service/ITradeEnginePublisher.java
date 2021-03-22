@@ -1,10 +1,11 @@
 package io.t11.tradeEngine.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.t11.tradeEngine.dto.CreatedOrder;
 
 public interface ITradeEnginePublisher {
 
-    void publishTradeToRegister(Object message) throws JsonProcessingException;
+    void publishTradeToRegister(CreatedOrder createdOrder) throws JsonProcessingException;
 
-    void publishOrdersToExchangeConnectivityQueue(String message) throws JsonProcessingException;
+    void publishOrdersToExchangeConnectivityQueue(CreatedOrder createdOrder) throws JsonProcessingException;
 }

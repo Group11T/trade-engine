@@ -21,12 +21,6 @@ public class RedisConfig {
     @Autowired
     private RedisConnectionFactory redisConnectionFactory;
 
-    @Bean
-    String queue(){
-        return new String("orderQueue");
-    }
-
-    @Bean
     ChannelTopic ordersTopic() {
         return new ChannelTopic("valid-orders");
     }
@@ -61,8 +55,7 @@ public class RedisConfig {
     @Bean
     @Primary
     ITradeEnginePublisher tradeObjectPublisher(){
-        ChannelTopic registersTopic=new ChannelTopic("trade-orders");
-        return new TradeEnginePublisher(redisTemplate(redisConnectionFactory),jedisPool(),registersTopic,queue());
+        return new TradeEnginePublisher(redisTemplate(redisConnectionFactory),jedisPool());
     }
 
 }
