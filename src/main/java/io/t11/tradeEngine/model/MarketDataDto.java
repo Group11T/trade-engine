@@ -1,4 +1,4 @@
-package io.t11.tradeEngine.dto;
+package io.t11.tradeEngine.model;
 
 public class MarketDataDto {
 

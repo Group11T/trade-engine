@@ -1,11 +1,11 @@
-package io.t11.tradeEngine.dto;
+package io.t11.tradeEngine.model;
 
 import javax.persistence.*;
 import java.util.Objects;
 
 @Entity
 @Table(name="created_orders")
-public class CreatedOrder {
+public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,7 +21,7 @@ public class CreatedOrder {
 
     private String validationStatus;
 
-    private String uniqueOrderId;
+    private Long userId;
 
     public Long getId() {
         return id;
@@ -71,43 +71,33 @@ public class CreatedOrder {
         this.validationStatus = validationStatus;
     }
 
-    public String getUniqueOrderId() {
-        return uniqueOrderId;
-    }
-
-    public void setUniqueOrderId(String uniqueOrderId) {
-        this.uniqueOrderId = uniqueOrderId;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        CreatedOrder that = (CreatedOrder) o;
-        return quantity == that.quantity &&
-                Double.compare(that.price, price) == 0 &&
-                Objects.equals(id, that.id) &&
-                Objects.equals(product, that.product) &&
-                Objects.equals(side, that.side) &&
-                Objects.equals(validationStatus, that.validationStatus) &&
-                Objects.equals(uniqueOrderId, that.uniqueOrderId);
+        Order order = (Order) o;
+        return quantity == order.quantity &&
+                Double.compare(order.price, price) == 0 &&
+                Objects.equals(id, order.id) &&
+                Objects.equals(product, order.product) &&
+                Objects.equals(side, order.side) &&
+                Objects.equals(validationStatus, order.validationStatus);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, product, quantity, price, side, validationStatus, uniqueOrderId);
+        return Objects.hash(id, product, quantity, price, side, validationStatus);
     }
 
     @Override
     public String toString() {
-        return "CreatedOrder{" +
+        return "Order{" +
                 "id=" + id +
                 ", product='" + product + '\'' +
                 ", quantity=" + quantity +
                 ", price=" + price +
                 ", side='" + side + '\'' +
                 ", validationStatus='" + validationStatus + '\'' +
-                ", uniqueOrderId='" + uniqueOrderId + '\'' +
                 '}';
     }
 }

@@ -3,7 +3,7 @@ package io.t11.tradeEngine.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.t11.tradeEngine.dto.CreatedOrder;
+import io.t11.tradeEngine.model.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +28,13 @@ public class ValidOrderSubscriber implements MessageListener {
     @Override
     public void onMessage(Message tradeOrder, byte[] pattern) {
         logger.info("Message Received : {}", tradeOrder);
-        CreatedOrder createdOrder = null;
+        Order order = null;
         try {
-            createdOrder = deserializeMessageToCreatedOrder(tradeOrder);
-            makeDecisionWithOrder(createdOrder);
+            order = deserializeMessageToCreatedOrder(tradeOrder);
+            makeDecisionWithOrder(order);
             try {
-                logger.info("Pushing order  to exchange connectivity queue: {}",  createdOrder.getId());
-                orderQueuePublisher.publishOrdersToExchangeConnectivityQueue(createdOrder);
+                logger.info("Pushing order  to exchange connectivity queue: {}",  order.getId());
+                orderQueuePublisher.publishOrdersToExchangeConnectivityQueue(order);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
@@ -43,13 +43,13 @@ public class ValidOrderSubscriber implements MessageListener {
         }
     }
 
-    public CreatedOrder deserializeMessageToCreatedOrder(Message message) throws IOException {
+    public Order deserializeMessageToCreatedOrder(Message message) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
-        CreatedOrder createdOrder = objectMapper.readValue(message.getBody(), CreatedOrder.class);
-        return createdOrder;
+        Order order = objectMapper.readValue(message.getBody(), Order.class);
+        return order;
     }
 
-    private void makeDecisionWithOrder(CreatedOrder createdOrder) {
+    private void makeDecisionWithOrder(Order order) {
     }
 }

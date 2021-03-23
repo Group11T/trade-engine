@@ -1,5 +1,6 @@
 package io.t11.tradeEngine.config;
 
+import io.t11.tradeEngine.model.Order;
 import io.t11.tradeEngine.service.ITradeEnginePublisher;
 import io.t11.tradeEngine.service.TradeEnginePublisher;
 import io.t11.tradeEngine.service.ValidOrderSubscriber;
@@ -39,8 +40,8 @@ public class RedisConfig {
     }
 
     @Bean
-    RedisTemplate<String,Object> redisTemplate(RedisConnectionFactory redisConnectionFactory){
-        RedisTemplate<String,Object> redisTemplate = new RedisTemplate<>();
+    RedisTemplate<String, Order> redisTemplate(RedisConnectionFactory redisConnectionFactory){
+        RedisTemplate<String,Order> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return redisTemplate;
@@ -48,7 +49,8 @@ public class RedisConfig {
 
     @Bean
     JedisPool jedisPool(){
-        return new JedisPool("redis-18040.c257.us-east-1-3.ec2.cloud.redislabs.com",18040, "default","TGYqAObAPjsrZEd5KbDnzBexK5MYWTBS");
+        return new JedisPool();
+        //"redis-18040.c257.us-east-1-3.ec2.cloud.redislabs.com",18040, "default","TGYqAObAPjsrZEd5KbDnzBexK5MYWTBS"
     }
 
     //

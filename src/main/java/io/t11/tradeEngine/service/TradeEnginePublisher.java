@@ -1,7 +1,8 @@
 package io.t11.tradeEngine.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.t11.tradeEngine.dto.CreatedOrder;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.t11.tradeEngine.model.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,25 +25,26 @@ public class TradeEnginePublisher implements ITradeEnginePublisher {
     };
 
     @Autowired
-    RedisTemplate<String,Object> redisTemplate;
+    RedisTemplate<String,Order> redisTemplate;
 
     @Autowired
     JedisPool jedisPool;
 
-    public TradeEnginePublisher(RedisTemplate<String,Object> redisTemplate,JedisPool jedisPool) {
+    public TradeEnginePublisher(RedisTemplate<String,Order> redisTemplate,JedisPool jedisPool) {
         this.redisTemplate = redisTemplate;
         this.jedisPool =jedisPool;
     }
 
     @Override
-    public void publishTradeToRegister(CreatedOrder createdOrder) throws JsonProcessingException {
-        logger.info("Publishing: {}", createdOrder," to register");
-        redisTemplate.convertAndSend(registerTopic().getTopic(), createdOrder);
+    public void publishTradeToRegister(Order order) throws JsonProcessingException {
+        logger.info("Publishing: {}", order," to register");
+        redisTemplate.convertAndSend(registerTopic().getTopic(), order);
     }
 
     @Override
-    public void publishOrdersToExchangeConnectivityQueue(CreatedOrder createdOrder) throws JsonProcessingException {
-        logger.info("Publishing: {}", createdOrder," to exchange connectivity");
-        jedisPool.getResource().lpush(queue(), createdOrder.toString());
+    public void publishOrdersToExchangeConnectivityQueue(Order order) throws JsonProcessingException {
+        logger.info("Publishing: {}", order," to exchange connectivity");
+        ObjectMapper objectMapper = new ObjectMapper();
+        jedisPool.getResource().lpush(queue(), objectMapper.writeValueAsString(order));
     }
 }
