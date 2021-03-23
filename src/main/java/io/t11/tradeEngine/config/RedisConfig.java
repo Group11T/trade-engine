@@ -48,7 +48,7 @@ public class RedisConfig {
 
     @Bean
     JedisPool jedisPool(){
-        return new JedisPool("localhost");
+        return new JedisPool("redis-18040.c257.us-east-1-3.ec2.cloud.redislabs.com",18040, "default","TGYqAObAPjsrZEd5KbDnzBexK5MYWTBS");
     }
 
     //
