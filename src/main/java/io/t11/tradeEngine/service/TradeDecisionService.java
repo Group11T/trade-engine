@@ -100,6 +100,7 @@ public class TradeDecisionService implements ITradeDecisionService {
                     try {
                         logger.info("Pushing order  to exchange connectivity queue: {}",  orderDto.getId());
                         tradeEnginePublisher.publishOrdersToExchangeConnectivityQueue(order);
+                        tradeEnginePublisher.publishTradeToRecords(order);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
@@ -136,6 +137,7 @@ public class TradeDecisionService implements ITradeDecisionService {
                     try {
                         logger.info("Pushing order  to exchange connectivity queue: {}",  orderDto.getId());
                         tradeEnginePublisher.publishOrdersToExchangeConnectivityQueue(order);
+                        tradeEnginePublisher.publishTradeToRecords(order);
                     } catch (JsonProcessingException e) {
                         e.printStackTrace();
                     }
