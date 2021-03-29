@@ -1,35 +1,23 @@
 package io.t11.tradeEngine.model;
 
-import javax.persistence.*;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 
-@Entity
-@Table(name="created_orders")
+
 public class Order {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private  Long id;
-
     private String product;
-
-    private int quantity;
 
     private double price;
 
     private String side;
 
-    private String validationStatus;
-
     private Long userId;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
+    /*Map of each exchange and the quantity to trade,
+     *String is name of exchange to trade,Integer is number of stocks to trade
+     */
+    private Map<String,Integer> tradeDetails = new HashMap<>();
 
     public String getProduct() {
         return product;
@@ -37,14 +25,6 @@ public class Order {
 
     public void setProduct(String product) {
         this.product = product;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
     }
 
     public double getPrice() {
@@ -63,41 +43,30 @@ public class Order {
         this.side = side;
     }
 
-    public String getValidationStatus() {
-        return validationStatus;
+    public Long getUserId() {
+        return userId;
     }
 
-    public void setValidationStatus(String validationStatus) {
-        this.validationStatus = validationStatus;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Order order = (Order) o;
-        return quantity == order.quantity &&
-                Double.compare(order.price, price) == 0 &&
-                Objects.equals(id, order.id) &&
-                Objects.equals(product, order.product) &&
-                Objects.equals(side, order.side) &&
-                Objects.equals(validationStatus, order.validationStatus);
+    public Map<String, Integer> getTradeDetails() {
+        return tradeDetails;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, product, quantity, price, side, validationStatus);
+    public void setTradeDetails(Map<String, Integer> tradeDetails) {
+        this.tradeDetails = tradeDetails;
     }
 
     @Override
     public String toString() {
         return "Order{" +
-                "id=" + id +
-                ", product='" + product + '\'' +
-                ", quantity=" + quantity +
+                "product='" + product + '\'' +
                 ", price=" + price +
                 ", side='" + side + '\'' +
-                ", validationStatus='" + validationStatus + '\'' +
+                ", userId=" + userId +
+                ", tradeDetails=" + tradeDetails +
                 '}';
     }
 }

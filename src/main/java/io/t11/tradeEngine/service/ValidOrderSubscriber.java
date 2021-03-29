@@ -1,9 +1,9 @@
 package io.t11.tradeEngine.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.t11.tradeEngine.model.Order;
+import io.t11.tradeEngine.dto.OrderDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,37 +19,29 @@ public class ValidOrderSubscriber implements MessageListener {
     private final Logger logger = LoggerFactory.getLogger((ValidOrderSubscriber.class));
 
     @Autowired
-    ITradeEnginePublisher orderQueuePublisher;
+    ITradeDecisionService tradeDecisionService;
 
-    public ValidOrderSubscriber(ITradeEnginePublisher orderQueuePublisher) {
-        this.orderQueuePublisher = orderQueuePublisher;
+    public ValidOrderSubscriber(ITradeDecisionService tradeDecisionService) {
+        this.tradeDecisionService = tradeDecisionService;
     }
 
     @Override
     public void onMessage(Message tradeOrder, byte[] pattern) {
         logger.info("Message Received : {}", tradeOrder);
-        Order order = null;
         try {
-            order = deserializeMessageToCreatedOrder(tradeOrder);
-            makeDecisionWithOrder(order);
-            try {
-                logger.info("Pushing order  to exchange connectivity queue: {}",  order.getId());
-                orderQueuePublisher.publishOrdersToExchangeConnectivityQueue(order);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
-        } catch (IOException e) {
+           OrderDto orderDto = deserializeMessageToOrderDto(tradeOrder);
+           tradeDecisionService.makeDecisionWithOrderDto(orderDto);
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
 
-    public Order deserializeMessageToCreatedOrder(Message message) throws IOException {
+    public OrderDto deserializeMessageToOrderDto(Message message) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
-        Order order = objectMapper.readValue(message.getBody(), Order.class);
-        return order;
+        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        OrderDto orderDto = objectMapper.readValue(message.getBody(), OrderDto.class);
+        return orderDto;
     }
 
-    private void makeDecisionWithOrder(Order order) {
-    }
 }

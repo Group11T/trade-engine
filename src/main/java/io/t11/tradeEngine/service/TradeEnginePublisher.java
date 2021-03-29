@@ -36,15 +36,15 @@ public class TradeEnginePublisher implements ITradeEnginePublisher {
     }
 
     @Override
-    public void publishTradeToRegister(Order order) throws JsonProcessingException {
-        logger.info("Publishing: {}", order," to register");
-        redisTemplate.convertAndSend(registerTopic().getTopic(), order);
-    }
-
-    @Override
     public void publishOrdersToExchangeConnectivityQueue(Order order) throws JsonProcessingException {
         logger.info("Publishing: {}", order," to exchange connectivity");
         ObjectMapper objectMapper = new ObjectMapper();
         jedisPool.getResource().lpush(queue(), objectMapper.writeValueAsString(order));
+    }
+
+    @Override
+    public void publishTradeToRecords(Order order) throws JsonProcessingException {
+        logger.info("Publishing: {}", order," to register");
+        redisTemplate.convertAndSend(registerTopic().getTopic(), order);
     }
 }
