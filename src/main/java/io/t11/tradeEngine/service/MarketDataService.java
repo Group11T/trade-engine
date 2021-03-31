@@ -62,7 +62,7 @@ public class MarketDataService {
         return marketDataRepository.findByTicker(ticker);
     }
 
-//    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedDelay = 60000)
     public void getUpdatedMarketData(){
         String url = "https://exchange.matraining.com/md/";
         List<Object> marketData = restTemplate.getForObject(url, ArrayList.class);
