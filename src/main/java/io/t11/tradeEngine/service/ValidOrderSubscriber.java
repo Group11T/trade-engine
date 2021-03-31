@@ -32,7 +32,7 @@ public class ValidOrderSubscriber implements MessageListener {
            OrderDto orderDto = deserializeMessageToOrderDto(tradeOrder);
            tradeDecisionService.makeDecisionWithOrderDto(orderDto);
         } catch (Throwable e) {
-            e.printStackTrace();
+            logger.error("Cannot trade at this moment",e);
         }
     }
 

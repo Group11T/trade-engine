@@ -78,13 +78,21 @@ public class TradeDecisionService implements ITradeDecisionService {
         if(orderDto.getSide().equals("BUY")){
             double maxAllowedBidPrice = marketDataRepository.findByTicker(orderDto.getProduct()).get().getBidPrice() + maxShiftPrice;
             double minAllowedBidPrice = marketDataRepository.findByTicker(orderDto.getProduct()).get().getBidPrice() - maxShiftPrice;
+            OrderbookDto minimumAskPriceBook1 = new OrderbookDto();
+            OrderbookDto minimumAskPriceBook2 = new OrderbookDto();
+            OrderbookDto maxBidBook1 = new OrderbookDto();
+            OrderbookDto maxBidBook2 = new OrderbookDto();
+            try {
+                minimumAskPriceBook1 = getMimimumAskPriceByTicker(orderDto.getProduct(),"EXCHANGE_1");
+                minimumAskPriceBook2 = getMimimumAskPriceByTicker(orderDto.getProduct(),"EXCHANGE_2");
 
-            OrderbookDto minimumAskPriceBook1 = getMimimumAskPriceByTicker(orderDto.getProduct(),"EXCHANGE_1");
-            OrderbookDto minimumAskPriceBook2 = getMimimumAskPriceByTicker(orderDto.getProduct(),"EXCHANGE_2");
-
-            OrderbookDto maxBidBook1 =  getMaximumBidPriceByTicker(orderDto.getProduct(),"EXCHANGE_1");
-            OrderbookDto maxBidBook2 = getMaximumBidPriceByTicker(orderDto.getProduct(),"EXCHANGE_2");
-
+                System.out.println(minimumAskPriceBook2);
+                maxBidBook1 =  getMaximumBidPriceByTicker(orderDto.getProduct(),"EXCHANGE_1");
+                maxBidBook2 =  getMaximumBidPriceByTicker(orderDto.getProduct(),"EXCHANGE_2");
+            }
+            catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
 
             int availableQuantityOnExchange1=minimumAskPriceBook1.getQuantity() - minimumAskPriceBook1.getCumulatitiveQuantity();
             int availableQuantityOnExchange2=minimumAskPriceBook2.getQuantity() - minimumAskPriceBook2.getCumulatitiveQuantity();
@@ -102,7 +110,7 @@ public class TradeDecisionService implements ITradeDecisionService {
                         tradeEnginePublisher.publishOrdersToExchangeConnectivityQueue(order);
                         tradeEnginePublisher.publishTradeToRecords(order);
                     } catch (JsonProcessingException e) {
-                        e.printStackTrace();
+                       logger.error("Unable to publish order exchange connectivity",e);
                     }
                 }
                 else{
@@ -121,10 +129,15 @@ public class TradeDecisionService implements ITradeDecisionService {
         else if(orderDto.getSide().equals("SELL")){
             double maxAllowedAskPrice = marketDataRepository.findByTicker(orderDto.getProduct()).get().getAskPrice() + maxShiftPrice;
             double minAllowedAskPrice = marketDataRepository.findByTicker(orderDto.getProduct()).get().getAskPrice() - maxShiftPrice;
+            OrderbookDto maxBidPriceBook1 = new OrderbookDto();
+            OrderbookDto maxBidPriceBook2 = new OrderbookDto();
+            try {
+                maxBidPriceBook1  = getMaximumBidPriceByTicker(orderDto.getProduct(), "EXCHANGE_1");
+                maxBidPriceBook2 = getMaximumBidPriceByTicker(orderDto.getProduct(), "EXCHANGE_2");
+            }
+            catch(Throwable t){
 
-            OrderbookDto maxBidPriceBook1 = getMaximumBidPriceByTicker(orderDto.getProduct(),"EXCHANGE_1");
-            OrderbookDto maxBidPriceBook2 = getMaximumBidPriceByTicker(orderDto.getProduct(),"EXCHANGE_2");
-
+            }
             int availableQuantityOnExchange1=maxBidPriceBook1.getQuantity() - maxBidPriceBook1.getCumulatitiveQuantity();
             int availableQuantityOnExchange2=maxBidPriceBook2.getQuantity() - maxBidPriceBook2.getCumulatitiveQuantity();
 
@@ -159,62 +172,63 @@ public class TradeDecisionService implements ITradeDecisionService {
     public Order makeOfferOrder(OrderDto orderDto,double maximumBidPriceOnExchange1,double maximumBidPriceOnExchange2, int availableQuantityOnExchange1, int availableQuantityOnExchange2) {
         HashMap<String,Integer> tradeDetails = new HashMap<>();
         Order order = createOrder(orderDto);
-
-        if(orderDto.getPrice() == maximumBidPriceOnExchange1){
-            if(orderDto.getQuantity() <= availableQuantityOnExchange1){
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), 0);
-                order.setTradeDetails(tradeDetails);
-            }
-            else{
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange1 );
-                order.setTradeDetails(tradeDetails);
+        try {
+            if (orderDto.getPrice() == maximumBidPriceOnExchange1) {
+                if (orderDto.getQuantity() <= availableQuantityOnExchange1) {
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), 0);
+                    order.setTradeDetails(tradeDetails);
+                } else {
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange1);
+                    order.setTradeDetails(tradeDetails);
+                }
+            } else if (orderDto.getPrice() == maximumBidPriceOnExchange2) {
+                if (orderDto.getQuantity() <= availableQuantityOnExchange2) {
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), 0);
+                    order.setTradeDetails(tradeDetails);
+                } else {
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
+                    tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange2);
+                    order.setTradeDetails(tradeDetails);
+                }
             }
         }
-        else if(orderDto.getPrice() == maximumBidPriceOnExchange2){
-            if(orderDto.getQuantity() <= availableQuantityOnExchange2){
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), 0);
-                order.setTradeDetails(tradeDetails);
-            }
-            else{
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange2 );
-                order.setTradeDetails(tradeDetails);
-            }
+        catch (Throwable t){
+            logger.error("Unable to make offer bid",t);
         }
         return order;
     }
 
-    public Order makeBidOrder(OrderDto orderDto,double minimumAskPriceOnExchange1,double minimumAskPriceOnExchange2,int availableQuantityOnExchange1,int availableQuantityOnExchange2) throws Throwable {
-        HashMap<String,Integer> tradeDetails = new HashMap<>();
+    public Order makeBidOrder(OrderDto orderDto,double minimumAskPriceOnExchange1,double minimumAskPriceOnExchange2,int availableQuantityOnExchange1,int availableQuantityOnExchange2) {
         Order order = createOrder(orderDto);
-
-        if(orderDto.getPrice() == minimumAskPriceOnExchange1){
-            if(orderDto.getQuantity() <= availableQuantityOnExchange1){
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), 0);
-                order.setTradeDetails(tradeDetails);
-            }
-            else{
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange1 );
-                order.setTradeDetails(tradeDetails);
-            }
-        }
-        else if(orderDto.getPrice() == minimumAskPriceOnExchange2){
-            if(orderDto.getQuantity() <= availableQuantityOnExchange2){
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), 0);
-                order.setTradeDetails(tradeDetails);
-            }
-            else{
-                tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
-                tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange2 );
-                order.setTradeDetails(tradeDetails);
-            }
-        }
+        HashMap<String, Integer> tradeDetails = new HashMap<>();
+        try {
+           if (orderDto.getPrice() == minimumAskPriceOnExchange1) {
+               if (orderDto.getQuantity() <= availableQuantityOnExchange1) {
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), 0);
+                   order.setTradeDetails(tradeDetails);
+               } else {
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity());
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange1);
+                   order.setTradeDetails(tradeDetails);
+               }
+           } else if (orderDto.getPrice() == minimumAskPriceOnExchange2) {
+               if (orderDto.getQuantity() <= availableQuantityOnExchange2) {
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), 0);
+                   order.setTradeDetails(tradeDetails);
+               } else {
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_2.getExchangeName(), orderDto.getQuantity());
+                   tradeDetails.put(ExchangeDetails.EXCHANGE_1.getExchangeName(), orderDto.getQuantity() - availableQuantityOnExchange2);
+                   order.setTradeDetails(tradeDetails);
+               }
+           }
+       }catch (Throwable t){
+           logger.error("Unable to make bid order", t);
+       }
         return order;
     }
 
