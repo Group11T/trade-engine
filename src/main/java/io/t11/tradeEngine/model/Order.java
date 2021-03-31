@@ -6,6 +6,8 @@ import java.util.Map;
 
 public class Order {
 
+    private Long orderId;
+
     private String product;
 
     private double price;
@@ -18,6 +20,14 @@ public class Order {
      *String is name of exchange to trade,Integer is number of stocks to trade
      */
     private Map<String,Integer> tradeDetails = new HashMap<>();
+
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
 
     public String getProduct() {
         return product;
@@ -62,7 +72,8 @@ public class Order {
     @Override
     public String toString() {
         return "Order{" +
-                "product='" + product + '\'' +
+                "orderId=" + orderId +
+                ", product='" + product + '\'' +
                 ", price=" + price +
                 ", side='" + side + '\'' +
                 ", userId=" + userId +

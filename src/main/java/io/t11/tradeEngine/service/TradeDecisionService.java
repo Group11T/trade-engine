@@ -43,7 +43,7 @@ public class TradeDecisionService implements ITradeDecisionService {
 
 
     public OrderbookDto getMimimumAskPriceByTicker(String ticker,String exchange) throws Throwable {
-        final String url = ExchangeDetails.valueOf(exchange).getUrl() + ticker + "/sell";
+        final String url = ExchangeDetails.valueOf(exchange.toUpperCase()).getUrl() + ticker + "/sell";
         ObjectMapper objectMapper = new ObjectMapper();
 
         List receivedOrderbook = restTemplate.getForObject(url, ArrayList.class);
@@ -58,7 +58,7 @@ public class TradeDecisionService implements ITradeDecisionService {
 
 
     public OrderbookDto getMaximumBidPriceByTicker(String ticker,String exchange) throws Throwable {
-        final String url = "https://exchange.matraining.com/orderbook/" + ticker + "/buy";
+        final String url = ExchangeDetails.valueOf(exchange.toUpperCase()).getUrl() + ticker + "/buy";
         ObjectMapper objectMapper = new ObjectMapper();
 
         List receivedOrderbook = restTemplate.getForObject(url,ArrayList.class);
@@ -224,6 +224,7 @@ public class TradeDecisionService implements ITradeDecisionService {
         order.setProduct(orderDto.getProduct());
         order.setSide(orderDto.getSide());
         order.setUserId(orderDto.getUserId());
+        order.setOrderId(orderDto.getOrderId());
         return order;
     }
 

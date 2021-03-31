@@ -1,6 +1,5 @@
 package io.t11.tradeEngine.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
@@ -9,6 +8,8 @@ public class OrderDto {
 
     @Id
     private  Long id;
+
+    private Long orderId;
 
     private String product;
 
@@ -78,10 +79,19 @@ public class OrderDto {
         this.userId = userId;
     }
 
+    public Long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
+    }
+
     @Override
     public String toString() {
         return "OrderDto{" +
                 "id=" + id +
+                ", orderId=" + orderId +
                 ", product='" + product + '\'' +
                 ", quantity=" + quantity +
                 ", price=" + price +

@@ -1,7 +1,6 @@
 package io.t11.tradeEngine.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.t11.tradeEngine.controller.TradeController;
 import io.t11.tradeEngine.dao.MarketDataRepository;
 import io.t11.tradeEngine.dto.MarketDataDto;
 import io.t11.tradeEngine.model.MarketData;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
